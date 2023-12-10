@@ -186,7 +186,10 @@ UPROGS=\
 	_copy_file\
 	_get_uncle_count\
 	_get_process_lifetime\
-	_test_mfq\
+	_set_process_bjf\
+	_set_system_bjf\
+	_switch_queue\
+	_show_info\
 	_foo\
 
 fs.img: mkfs README strdiff_result.txt $(UPROGS)
@@ -257,7 +260,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
-	printf.c umalloc.c strdiff.c find_digit_root.c copy_file.c get_unchkule_count.c get_process_lifetime.c test_mfq.c foo.c\
+	printf.c umalloc.c strdiff.c find_digit_root.c copy_file.c get_unchkule_count.c get_process_lifetime.c set_process_bjf.c set_system_bjf.c switch_queue.c show_info.c foo.c\
 	README strdiff_result.txt dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
 

@@ -6,25 +6,7 @@ void info()
     show_process_info();
 }
 
-void set_queue(int pid, int queue)
-{
-    if (pid < 1)
-    {
-        printf(1, "Invalid pid\n");
-        return;
-    }
-    if (queue < 1 || queue > 3)
-    {
-        printf(1, "Invalid queue\n");
-        return;
-    }
-    printf(1, "ASFDSAFASFDFD\n");
-    int res = switch_queue(pid, queue);
-    if (res < 0)
-        printf(1, "Error changing queue\n");
-    else
-        printf(1, "Queue changed successfully\n");
-}
+
 
 void set_process_bjf(int pid, int priority_ratio, int arrival_time_ratio, int executed_cycle_ratio, int process_size_ratio)
 {
