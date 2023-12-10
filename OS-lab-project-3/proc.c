@@ -341,10 +341,11 @@ void switch_queue(int pid, int num) {
   for(struct proc* p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if (p->pid == pid) {
       p->sched.queue = num;
+      release(&ptable.lock);
       break;
     }
   }
-  return;
+  release(&ptable.lock);
 }
 
 struct proc*
