@@ -741,6 +741,9 @@ static inline
 int
 digitcount(int num)
 {
+  if (num == 0) {
+    return 2;
+  }
   int count = 1;
   while(num){
     num /= 10;
