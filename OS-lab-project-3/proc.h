@@ -41,7 +41,7 @@ typedef struct{
   float executed_cycle_ratio;
   int process_size;
   float process_size_ratio;
-}bjfinf;
+} bjfinf;
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 

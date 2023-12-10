@@ -336,16 +336,62 @@ wait(void)
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 
-void switch_queue(int pid, int num) {
+int
+switch_queue(int pid, int num) {
   acquire(&ptable.lock);
+  int res = -1;
   for(struct proc* p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if (p->pid == pid) {
+      res = p->sched.queue;
       p->sched.queue = num;
       release(&ptable.lock);
+      return res;
       break;
     }
   }
   release(&ptable.lock);
+  return res;
+}
+
+int
+bjf_parameters_sl(
+  int priority_ratio,
+  int arrival_time_ratio,
+  int executed_cycle_ratio,
+  int process_size_ratio
+) {
+  acquire(&ptable.lock);
+  for(struct proc* p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    p->sched.bjf.priority_ratio = priority_ratio;
+    p->sched.bjf.arrival_time_ratio = arrival_time_ratio;
+    p->sched.bjf.executed_cycle_ratio = executed_cycle_ratio;
+    p->sched.bjf.process_size_ratio = process_size_ratio;
+  }
+  release(&ptable.lock);
+  return 0;
+}
+
+int
+bjf_parameters_pl(
+  int pid,
+  int priority_ratio,
+  int arrival_time_ratio,
+  int executed_cycle_ratio,
+  int process_size_ratio
+  ) {
+  acquire(&ptable.lock);
+  for(struct proc* p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if(p->pid == pid) {
+      p->sched.bjf.priority_ratio = priority_ratio;
+      p->sched.bjf.arrival_time_ratio = arrival_time_ratio;
+      p->sched.bjf.executed_cycle_ratio = executed_cycle_ratio;
+      p->sched.bjf.process_size_ratio = process_size_ratio;
+      release(&ptable.lock);
+      return 0;
+    } 
+  }
+  release(&ptable.lock);
+  return -1;
 }
 
 struct proc*
@@ -413,7 +459,8 @@ handle_ages(int tmpticks) {
 
 struct proc*
 find_lcfs_proc() {
-  struct proc* resp;
+  struct proc init_proc;
+  struct proc* resp = &init_proc;
   resp->st = 0;
   int found = 0;
   for(struct proc* p = ptable.proc; p < &ptable.proc[NPROC]; p++) {

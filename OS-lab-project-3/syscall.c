@@ -107,7 +107,9 @@ extern int sys_find_digit_root(void);
 extern int sys_copy_file(void);
 extern int sys_get_uncle_count(void);
 extern int sys_get_process_lifetime(void);
-extern void sys_switch_queue(void);
+extern int sys_switch_queue(void);
+extern int sys_bjf_parameters_pl(void);
+extern int sys_bjf_parameters_sl(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -136,6 +138,8 @@ static int (*syscalls[])(void) = {
 [SYS_get_uncle_count] sys_get_uncle_count,
 [SYS_get_process_lifetime] sys_get_process_lifetime,
 [SYS_switch_queue] sys_switch_queue,
+[SYS_bjf_parameters_pl] sys_bjf_parameters_pl,
+[SYS_bjf_parameters_sl] sys_bjf_parameters_sl,
 };
 
 void
