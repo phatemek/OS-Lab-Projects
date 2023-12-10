@@ -111,7 +111,7 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
-  p->sched.queue = RR;
+  p->sched.queue = (p->pid == 1)? RR : LCFS;
   p->sched.last_run = ticks;
   return p;
 }
@@ -328,17 +328,6 @@ wait(void)
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 
-struct proc*
-find_rr_proc(struct proc* prv) {
-  struct proc* p = prv;
-  for(;;) {
-    p++;
-    if (p >= &ptable.proc[NPROC]) { p = ptable.proc; }
-    if (p -> state == RUNNABLE && p -> sched.queue == RR) { return p; }
-    if (p == prv) { return 0; }
-  }
-}
-
 void
 handle_ages(int tmpticks) {
   cprintf("hi\n");
@@ -362,6 +351,35 @@ handle_ages(int tmpticks) {
   release(&ptable.lock);
 }
 
+struct proc*
+find_rr_proc(struct proc* prv) {
+  struct proc* p = prv;
+  for(;;) {
+    p++;
+    if (p >= &ptable.proc[NPROC]) { p = ptable.proc; }
+    if (p -> state == RUNNABLE && p -> sched.queue == RR) { return p; }
+    if (p == prv) { return 0; }
+  }
+}
+
+struct proc*
+find_lcfs_proc() {
+  struct proc* resp;
+  resp->st = 0;
+  int found = 0;
+  for(struct proc* p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if(p->state == RUNNABLE && p->sched.queue == LCFS && p->st > resp->st) {
+      resp = p;
+      found = 1;
+    }
+  }
+  if (found) {
+    return resp;
+  } else {
+    return 0;
+  }
+}
+
 void
 scheduler(void)
 {
@@ -380,14 +398,20 @@ scheduler(void)
     if (p) {
       prv = p;
     } else {
-      release(&ptable.lock);
-      continue;
+      p = find_lcfs_proc();
+      if (p) {
+        prv = p;
+      }
+      else {
+        release(&ptable.lock);
+        continue;
+      }
     }
 
     c->proc = p;
     switchuvm(p);
     p->state = RUNNING;
-
+    p->sched.last_run = ticks;
     swtch(&(c->scheduler), p->context);
     switchkvm();
     c->proc = 0;
