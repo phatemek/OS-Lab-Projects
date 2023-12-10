@@ -110,6 +110,7 @@ extern int sys_get_process_lifetime(void);
 extern int sys_switch_queue(void);
 extern int sys_bjf_parameters_pl(void);
 extern int sys_bjf_parameters_sl(void);
+extern int sys_show_process_info(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -140,6 +141,7 @@ static int (*syscalls[])(void) = {
 [SYS_switch_queue] sys_switch_queue,
 [SYS_bjf_parameters_pl] sys_bjf_parameters_pl,
 [SYS_bjf_parameters_sl] sys_bjf_parameters_sl,
+[SYS_show_process_info] sys_show_process_info,
 };
 
 void

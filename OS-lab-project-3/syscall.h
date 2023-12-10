@@ -27,3 +27,4 @@
 #define SYS_switch_queue 26
 #define SYS_bjf_parameters_pl 27
 #define SYS_bjf_parameters_sl 28
+#define SYS_show_process_info 29

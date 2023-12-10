@@ -128,6 +128,7 @@ int 			get_process_lifetime(int pid);
 int             switch_queue(int, int);
 int             bjf_parameters_pl(int, int, int, int, int);
 int             bjf_parameters_sl(int, int, int, int);
+void            show_process_info(void);
 // swtch.S
 void            swtch(struct context**, struct context*);
 

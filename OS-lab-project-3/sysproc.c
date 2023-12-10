@@ -140,3 +140,9 @@ sys_bjf_parameters_sl(void) {
   argint(3, &process_size_ratio);
   return bjf_parameters_sl(priority_ratio, arrival_time_ratio, executed_cycle_ratio, process_size_ratio);
 }
+
+void
+sys_show_process_info(void){
+  show_process_info();
+  return;
+}
