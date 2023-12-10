@@ -32,11 +32,23 @@ struct context {
   uint eip;
 };
 
+typedef struct{
+  int priority;
+  float priority_ratio;
+  int arrival_time;
+  float arrival_time_ratio;
+  float executed_cycle;
+  float executed_cycle_ratio;
+  int process_size;
+  float process_size_ratio;
+}bjfinf;
+
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 typedef struct {
   int queue;
   int last_run;
+  bjfinf bjf;
 } sch;
 
 // Per-process state

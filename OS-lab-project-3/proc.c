@@ -111,8 +111,16 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
-  p->sched.queue = (p->pid == 1)? RR : LCFS;
+  memset(&p->sched, 0, sizeof(p->sched));
+  p->sched.queue = (p->pid == 1)?RR:LCFS;
   p->sched.last_run = ticks;
+  p->sched.bjf.arrival_time = ticks;
+  p->sched.bjf.priority = 1;
+  p->sched.bjf.priority_ratio = 1;
+  p->sched.bjf.arrival_time_ratio = 1;
+  p->sched.bjf.executed_cycle_ratio = 1;
+  p->sched.bjf.process_size = p->sz;
+  p->sched.bjf.process_size_ratio = 1;
   return p;
 }
 
@@ -221,8 +229,8 @@ fork(void)
   tt = ticks;
   release(&tickslock);
   np->st = tt;
-
   release(&ptable.lock);
+
 
   return pid;
 }
@@ -328,9 +336,49 @@ wait(void)
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 
+struct proc*
+find_rr_proc(struct proc* prv) {
+  struct proc* p = prv;
+  for(;;) {
+    p++;
+    if (p >= &ptable.proc[NPROC]) { p = ptable.proc; }
+    if (p -> state == RUNNABLE && p -> sched.queue == RR) { return p; }
+    if (p == prv) { return 0; }
+  }
+}
+
+static float
+bjfrank(struct proc* p){
+  return p->sched.bjf.priority *
+  p->sched.bjf.priority_ratio +
+  p->sched.bjf.arrival_time *
+  p->sched.bjf.arrival_time_ratio +  
+  p->sched.bjf.executed_cycle *
+  p->sched.bjf.executed_cycle_ratio + 
+  p->sched.bjf.process_size *
+  p->sched.bjf.process_size_ratio;
+  ;
+}
+struct proc*
+find_bestjobfirst_proc(void)
+{
+  struct proc* result = 0;
+  float minrank;
+  struct proc* p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state != RUNNABLE || p->sched.queue != BJF)
+     continue;
+    float rank = bjfrank(p);
+    if(result == 0 || rank < minrank){
+      result = p;
+      minrank = rank;
+    }
+  }
+  return result;
+}
+
 void
 handle_ages(int tmpticks) {
-  cprintf("hi\n");
   struct proc *p;
 
   acquire(&ptable.lock);
@@ -349,17 +397,6 @@ handle_ages(int tmpticks) {
   }
 
   release(&ptable.lock);
-}
-
-struct proc*
-find_rr_proc(struct proc* prv) {
-  struct proc* p = prv;
-  for(;;) {
-    p++;
-    if (p >= &ptable.proc[NPROC]) { p = ptable.proc; }
-    if (p -> state == RUNNABLE && p -> sched.queue == RR) { return p; }
-    if (p == prv) { return 0; }
-  }
 }
 
 struct proc*
@@ -397,25 +434,25 @@ scheduler(void)
     p = find_rr_proc(prv);
     if (p) {
       prv = p;
-    } else {
+    }else {
       p = find_lcfs_proc();
-      if (p) {
-        prv = p;
-      }
-      else {
-        release(&ptable.lock);
-        continue;
+      if(!p){
+        p = find_bestjobfirst_proc();
+        if (!p){
+          release(&ptable.lock);
+          continue;
+        }
       }
     }
 
     c->proc = p;
     switchuvm(p);
     p->state = RUNNING;
+    p->sched.bjf.executed_cycle += 0.1f;
     p->sched.last_run = ticks;
     swtch(&(c->scheduler), p->context);
     switchkvm();
     c->proc = 0;
-
     release(&ptable.lock);
   }
 }
