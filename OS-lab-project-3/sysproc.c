@@ -111,3 +111,11 @@ sys_get_process_lifetime(void){
   argint(0, &pid);
   return get_process_lifetime(pid);
 }
+
+void
+sys_switch_queue(void){
+  int pid, queue;
+  argint(0, &pid);
+  argint(1, &queue);
+  return switch_queue(pid, queue);
+}

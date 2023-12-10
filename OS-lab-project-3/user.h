@@ -27,6 +27,7 @@ int find_digit_root(void);
 int copy_file(const char*, const char*);
 int get_uncle_count(int);
 int get_process_lifetime(int);
+void switch_queue(int, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

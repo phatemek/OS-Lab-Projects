@@ -336,6 +336,17 @@ wait(void)
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 
+void switch_queue(int pid, int num) {
+  acquire(&ptable.lock);
+  for(struct proc* p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->pid == pid) {
+      p->sched.queue = num;
+      break;
+    }
+  }
+  return;
+}
+
 struct proc*
 find_rr_proc(struct proc* prv) {
   struct proc* p = prv;
@@ -390,7 +401,7 @@ handle_ages(int tmpticks) {
       if (tmpticks - p->sched.last_run > AGING_TIME)
       {
         release(&ptable.lock);
-        // change_queue(p->pid, RR);
+        switch_queue(p->pid, RR);
         acquire(&ptable.lock);
       }
     }
