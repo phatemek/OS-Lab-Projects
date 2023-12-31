@@ -417,6 +417,7 @@ bjfrank(struct proc* p){
   p->sched.bjf.process_size_ratio;
   ;
 }
+
 struct proc*
 find_bestjobfirst_proc(void)
 {
