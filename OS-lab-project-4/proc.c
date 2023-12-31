@@ -12,6 +12,7 @@ struct {
   struct proc proc[NPROC];
 } ptable;
 
+
 static struct proc *initproc;
 
 int nextpid = 1;
@@ -112,7 +113,7 @@ found:
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
   memset(&p->sched, 0, sizeof(p->sched));
-  p->sched.queue = (p->pid == 1 || p->pid == 2)?RR:LCFS;
+  p->sched.queue = (p->pid == 1)?RR:LCFS;
   p->sched.last_run = ticks;
   p->sched.bjf.arrival_time = ticks;
   p->sched.bjf.priority = 1;
@@ -417,7 +418,6 @@ bjfrank(struct proc* p){
   p->sched.bjf.process_size_ratio;
   ;
 }
-
 struct proc*
 find_bestjobfirst_proc(void)
 {
@@ -620,10 +620,10 @@ static void
 wakeup1(void *chan)
 {
   struct proc *p;
-
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->state == SLEEPING && p->chan == chan)
       p->state = RUNNABLE;
+  }
 }
 
 // Wake up all processes sleeping on chan.
@@ -824,4 +824,19 @@ show_process_info()
     cprintf("%d", (int)bjfrank(p));
     cprintf("\n");
   }
+}
+
+void 
+plock_aquire(){
+  acquireplock(&myplock);
+}
+
+void
+plock_release(){
+  releaseplock(&myplock);
+}
+
+void
+plock_init(){
+  initplock(&myplock, "salam");
 }
