@@ -81,14 +81,16 @@ close_sharedmem(int _id) {
 
 int
 write_sh_table(int x){
-  struct proc* proc = myproc();
   acquire(&sh_table.lock);
+  struct proc* proc = myproc();
+  char* tmp = (char*)PGROUNDUP(proc->sz);
+  char* value = (char*)tmp;
   if (x != 0){
-    *(proc->pgdir) = *(proc->pgdir) + 1;
+    *value += 1;
   }else{
-    *(proc->pgdir) = 0;
+    *value = 0;
   }
-  int res = *(proc->pgdir);
+  int res = *value;
   release(&sh_table.lock);
   return res;
 }
@@ -97,6 +99,12 @@ void
 pinit(void)
 {
   initlock(&ptable.lock, "ptable");
+}
+
+void
+shinit(void)
+{
+  initlock(&sh_table.lock, "shtable");
 }
 
 // Must be called with interrupts disabled
@@ -553,43 +561,38 @@ find_lcfs_proc() {
 void
 scheduler(void)
 {
-  struct proc *p, *prv;
-  prv = &ptable.proc[NPROC-1];
+  struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-
+  
   for(;;){
     // Enable interrupts on this processor.
     sti();
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    p = find_rr_proc(prv);
-    if (p) {
-      prv = p;
-    }else {
-      p = find_lcfs_proc();
-      if(!p){
-        p = find_bestjobfirst_proc();
-        if (!p){
-          release(&ptable.lock);
-          continue;
-        }
-      }
-    }
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
 
-    c->proc = p;
-    switchuvm(p);
-    p->state = RUNNING;
-    p->sched.bjf.executed_cycle += 0.1f;
-    p->sched.last_run = ticks;
-    swtch(&(c->scheduler), p->context);
-    switchkvm();
-    c->proc = 0;
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    }
     release(&ptable.lock);
+
   }
 }
-
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this

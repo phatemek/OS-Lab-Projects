@@ -115,6 +115,7 @@ struct cpu*     mycpu(void);
 struct proc*    myproc();
 void            handle_ages(int);
 void            pinit(void);
+void			shinit(void);
 void            procdump(void);
 void            scheduler(void) __attribute__((noreturn));
 void            sched(void);

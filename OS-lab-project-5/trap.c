@@ -54,7 +54,7 @@ trap(struct trapframe *tf)
       tmpticks = ticks;
       wakeup(&ticks);
       release(&tickslock);
-      handle_ages(tmpticks);
+      // handle_ages(tmpticks);
     }
     lapiceoi();
     break;
